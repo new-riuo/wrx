@@ -1,0 +1,46 @@
+{
+    "TEMPLATE_CONFIG": {
+        "WA": {
+            "sheet_name": "翼速特瑞福9610模板",
+            "bm_range": "A3:AC3"
+        },
+        "假发3店": {
+            "sheet_name": "翼速鑫瑞祥和9610模板",
+            "bm_range": "A4:AC4"
+        },
+        "WA海外托管": {
+            "sheet_name": "翼速鑫瑞祥和9610模板",
+            "bm_range": "A4:AC4"
+        },
+        "假发5店": {
+            "sheet_name": "翼速鑫瑞祥和9610模板",
+            "bm_range": "A4:AC4"
+        },
+        "假发1店": {
+            "sheet_name": "翼速碧欧丝9610模板",
+            "bm_range": "A5:AC5"
+        },
+        "Roselover 2店": {
+            "sheet_name": "翼速碧欧丝9610模板",
+            "bm_range": "A5:AC5"
+        },
+        "Top Unique Hair": {
+            "sheet_name": "翼速新启航9610模板",
+            "bm_range": "A2:AC2"
+        },
+        "BS": {
+            "sheet_name": "翼速新启航9610模板",
+            "bm_range": "A2:AC2"
+        },
+        "AB": {
+            "sheet_name": "翼速新启航9610模板",
+            "bm_range": "A2:AC2"
+        }
+    },
+    "TEMPLATE_FILE_MAP": {
+        "翼速特瑞福9610模板": "翼速特瑞福9610模板",
+        "翼速鑫瑞祥和9610模板": "翼速鑫瑞祥和9610模板",
+        "翼速新启航9610模板": "翼速新启航9610模板",
+        "翼速碧欧丝9610模板": "翼速碧欧丝9610模板"
+    }
+}

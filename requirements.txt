@@ -1,0 +1,7 @@
+# 报关单管理系统依赖包
+# Excel处理相关
+openpyxl>=3.1.2
+pandas>=2.0.3
+
+# 标准库无需在此列出
+tkinter  # 注：tkinter通常随Python标准库安装，无需单独安装

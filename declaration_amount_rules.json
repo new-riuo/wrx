@@ -1,0 +1,47 @@
+[
+    {
+        "country_name": "美国",
+        "declaration_ratio": 1.0,
+        "max_declaration_amount": 20.0
+    },
+    {
+        "country_name": "英国",
+        "declaration_ratio": 1.0,
+        "max_declaration_amount": 120.0
+    },
+    {
+        "country_name": "加拿大",
+        "declaration_ratio": 0.5,
+        "max_declaration_amount": 20
+    },
+    {
+        "country_name": "澳大利亚",
+        "declaration_ratio": 0.5,
+        "max_declaration_amount": 1000
+    },
+    {
+        "country_name": "德国",
+        "declaration_ratio": 0.6,
+        "max_declaration_amount": 150
+    },
+    {
+        "country_name": "法国",
+        "declaration_ratio": 0.6,
+        "max_declaration_amount": 150
+    },
+    {
+        "country_name": "意大利",
+        "declaration_ratio": 0.6,
+        "max_declaration_amount": 150
+    },
+    {
+        "country_name": "西班牙",
+        "declaration_ratio": 0.6,
+        "max_declaration_amount": 150
+    },
+    {
+        "country_name": "测试国家更新",
+        "declaration_ratio": 0.8,
+        "max_declaration_amount": 600
+    }
+]

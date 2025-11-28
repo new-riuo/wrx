@@ -1,0 +1,90 @@
+[
+    {
+        "consignee_country": "United States",
+        "three_letter_code": "USA"
+    },
+    {
+        "consignee_country": "USA",
+        "three_letter_code": "USA"
+    },
+    {
+        "consignee_country": "GB",
+        "three_letter_code": "GBR"
+    },
+    {
+        "consignee_country": "United Kingdom",
+        "three_letter_code": "GBR"
+    },
+    {
+        "consignee_country": "UNITED KINGDOM",
+        "three_letter_code": "GBR"
+    },
+    {
+        "consignee_country": "Germany",
+        "three_letter_code": "DEU"
+    },
+    {
+        "consignee_country": "GERMANY",
+        "three_letter_code": "DEU"
+    },
+    {
+        "consignee_country": "Australia",
+        "three_letter_code": "AUS"
+    },
+    {
+        "consignee_country": "Canada",
+        "three_letter_code": "CAN"
+    },
+    {
+        "consignee_country": "France",
+        "three_letter_code": "FRA"
+    },
+    {
+        "consignee_country": "Italy",
+        "three_letter_code": "ITA"
+    },
+    {
+        "consignee_country": "Spain",
+        "three_letter_code": "ESP"
+    },
+    {
+        "consignee_country": "Japan",
+        "three_letter_code": "JPN"
+    },
+    {
+        "consignee_country": "Korea, Republic of",
+        "three_letter_code": "KOR"
+    },
+    {
+        "consignee_country": "Korea",
+        "three_letter_code": "KOR"
+    },
+    {
+        "consignee_country": "Singapore",
+        "three_letter_code": "SGP"
+    },
+    {
+        "consignee_country": "Malaysia",
+        "three_letter_code": "MYS"
+    },
+    {
+        "consignee_country": "India",
+        "three_letter_code": "IND"
+    },
+    {
+        "consignee_country": "Brazil",
+        "three_letter_code": "BRA"
+    },
+    {
+        "consignee_country": "Russian Federation",
+        "three_letter_code": "RUS"
+    },
+    {
+        "consignee_country": "Russia",
+        "three_letter_code": "RUS"
+    },
+    {
+        "consignee_country": "South Africa",
+        "three_letter_code": "ZAF"
+    }
+]
