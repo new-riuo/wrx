@@ -24,6 +24,7 @@ class ExcelProcessor:
         self.currency_data = []  # 币种数据
         self.shop_company_data = []  # 店铺对应公司数据
         self.declaration_amount_rules = []  # 申报金额规则数据
+        self.customs_data = []  # 报关单数据
         # 加载配置
         self.load_config()
         # 初始化默认数据
@@ -65,22 +66,10 @@ class ExcelProcessor:
         
         # 初始化默认国家代码（只包含consignee_country和three_letter_code）
         self.country_codes = [
-            {"consignee_country": "United States", "three_letter_code": "USA"},
-            {"consignee_country": "United Kingdom", "three_letter_code": "GBR"},
-            {"consignee_country": "Canada", "three_letter_code": "CAN"},
-            {"consignee_country": "Australia", "three_letter_code": "AUS"},
-            {"consignee_country": "Germany", "three_letter_code": "DEU"},
-            {"consignee_country": "France", "three_letter_code": "FRA"},
-            {"consignee_country": "Italy", "three_letter_code": "ITA"},
-            {"consignee_country": "Spain", "three_letter_code": "ESP"},
-            {"consignee_country": "Japan", "three_letter_code": "JPN"},
-            {"consignee_country": "Korea, Republic of", "three_letter_code": "KOR"},
-            {"consignee_country": "Singapore", "three_letter_code": "SGP"},
-            {"consignee_country": "Malaysia", "three_letter_code": "MYS"},
-            {"consignee_country": "India", "three_letter_code": "IND"},
-            {"consignee_country": "Brazil", "three_letter_code": "BRA"},
-            {"consignee_country": "Russian Federation", "three_letter_code": "RUS"},
-            {"consignee_country": "South Africa", "three_letter_code": "ZAF"}
+            {"consignee_country": "United States", "three_letter_code": "502"},
+            {"consignee_country": "United Kingdom", "three_letter_code": "303"},
+            {"consignee_country": "GB", "three_letter_code": "303"},
+            {"consignee_country": "United Kingdom", "three_letter_code": "303"},
         ]
         
         # 初始化默认币种数据
@@ -112,9 +101,9 @@ class ExcelProcessor:
         
         # 初始化默认申报金额规则
         self.declaration_amount_rules = [
-            {"country_name": "美国", "declaration_ratio": 0.5, "max_declaration_amount": 800},
-            {"country_name": "英国", "declaration_ratio": 0.6, "max_declaration_amount": 135},
-            {"country_name": "加拿大", "declaration_ratio": 0.5, "max_declaration_amount": 20},
+            {"country_name": "美国", "declaration_ratio": 1, "max_declaration_amount": 3},
+            {"country_name": "英国", "declaration_ratio": 1, "max_declaration_amount": 135},
+            {"country_name": "加拿大", "declaration_ratio": 1, "max_declaration_amount": 20},
             {"country_name": "澳大利亚", "declaration_ratio": 0.5, "max_declaration_amount": 1000},
             {"country_name": "德国", "declaration_ratio": 0.6, "max_declaration_amount": 150},
             {"country_name": "法国", "declaration_ratio": 0.6, "max_declaration_amount": 150},
@@ -296,25 +285,17 @@ class ExcelProcessor:
             file_path = self.select_file(title="请选择物流信息表")
             
             if not file_path:
-                print("调试: 没有选择文件")
                 return False  # 返回False表示未导入
             
-            print(f"调试: 选择的文件路径: {file_path}")
-            
             # 清空现有物流数据
-            print(f"调试: 清空前物流数据长度: {len(self.logistics_data)}")
             self.logistics_data = []
-            print(f"调试: 清空后物流数据长度: {len(self.logistics_data)}")
             
             # 使用pandas读取Excel文件，支持.xls和.xlsx格式
             try:
                 import pandas as pd
                 
-                print(f"调试: 开始读取Excel文件")
                 # 读取Excel文件
                 df = pd.read_excel(file_path)
-                
-                print(f"调试: Excel文件读取成功，总行数: {len(df)}")
                 
                 # 获取表头并清理列名
                 headers = df.columns.tolist()
@@ -327,20 +308,15 @@ class ExcelProcessor:
                     else:
                         cleaned_headers.append(str(header).strip())
                 
-                print(f"调试: 原始表头信息: {headers}")
-                print(f"调试: 清理后表头信息: {cleaned_headers}")
-                
                 # 读取数据行
                 valid_rows = 0
                 for index, row in df.iterrows():
                     # 跳过空行
                     if pd.isna(row.iloc[0]):
-                        print(f"调试: 跳过空行 {index+1}")
                         continue
                     
                     # 跳过可能的表头重复行
                     if index > 0 and str(row.iloc[0]).strip() == cleaned_headers[0]:
-                        print(f"调试: 跳过重复表头行 {index+1}")
                         continue
                     
                     # 创建数据字典
@@ -372,39 +348,20 @@ class ExcelProcessor:
                     
                     self.logistics_data.append(row_data)
                     valid_rows += 1
-                    
-                    # 打印前5行数据用于调试
-                    if valid_rows <= 5:
-                        print(f"调试: 第{valid_rows}行数据: {row_data}")
-                
-                # 确保数据已正确存储
-                print(f"调试: 成功导入 {valid_rows} 条有效数据")
-                print(f"调试: 当前物流数据总长度: {len(self.logistics_data)}")
                 
                 # 数据验证：检查是否真的有数据被导入
                 if len(self.logistics_data) > 0:
-                    # 再次验证第一条数据
-                    first_row = self.logistics_data[0]
-                    print(f"调试: 数据验证 - 第一条数据包含 {len(first_row)} 个字段")
-                    print(f"调试: 数据验证 - 字段列表: {list(first_row.keys())}")
                     return True  # 返回True表示导入成功
                 else:
-                    print("调试: 警告 - 虽然导入过程没有报错，但没有有效数据被导入")
                     return False
                 
             except Exception as e:
-                print(f"调试: 读取Excel文件失败：{e}")
-                import traceback
-                traceback.print_exc()
+                print(f"读取Excel文件失败：{e}")
                 return False  # 返回False表示导入失败
             
         except Exception as e:
-            print(f"调试: 导入物流信息表时发生错误: {e}")
-            import traceback
-            traceback.print_exc()
             # 发生异常时清空数据，避免部分数据导入导致的问题
             self.logistics_data = []
-            print(f"调试: 异常处理 - 已清空物流数据，当前长度: {len(self.logistics_data)}")
             raise
     
     def process_logistics_data(self):
@@ -438,19 +395,6 @@ class ExcelProcessor:
         Returns:
             list: 物流数据列表
         """
-        # 添加详细调试信息
-        print(f"数据传递调试: get_logistics_data被调用，返回数据长度: {len(self.logistics_data)}")
-        
-        # 如果有数据，打印更多细节
-        if self.logistics_data:
-            print(f"数据传递调试: 数据包含 {len(self.logistics_data[0])} 个字段")
-            print(f"数据传递调试: 字段列表: {list(self.logistics_data[0].keys())}")
-            # 打印第一条数据的样本
-            first_row_sample = {k: str(v)[:50] for k, v in list(self.logistics_data[0].items())[:3]}  # 只显示前3个字段，每个字段最多50个字符
-            print(f"数据传递调试: 第一条数据样本: {first_row_sample}")
-        else:
-            print("数据传递调试: 返回空数据列表")
-        
         return self.logistics_data
     
     def import_order_file(self):
@@ -544,40 +488,24 @@ class ExcelProcessor:
         error_orders = 0
         
         try:
-            # 初始化日志记录
-            print("===== 开始生成报关单数据 =====")
-            
             # 检查必要的数据结构是否存在
             if not hasattr(self, 'order_data') or self.order_data is None:
-                print("错误：订单数据未初始化")
                 self.order_data = []
             
             if not hasattr(self, 'declaration_info'):
-                print("错误：报关信息未初始化")
                 self.declaration_info = []
             
             if not hasattr(self, 'shop_company_data'):
-                print("错误：店铺对应公司数据未初始化")
                 self.shop_company_data = []
             
             if not hasattr(self, 'country_codes'):
-                print("错误：国家代码数据未初始化")
                 self.country_codes = []
             
             if not hasattr(self, 'declaration_amount_rules'):
-                print("错误：申报金额规则未初始化")
                 self.declaration_amount_rules = []
-            
-            # 打印初始数据统计信息
-            print(f"订单数据总数: {len(self.order_data)}")
-            print(f"报关信息总数: {len(self.declaration_info)}")
-            print(f"店铺对应公司数据数量: {len(self.shop_company_data)}")
-            print(f"国家代码数据数量: {len(self.country_codes)}")
-            print(f"申报金额规则数量: {len(self.declaration_amount_rules)}")
             
             # 确保有报关信息可用，如果没有则创建默认报关信息
             if not self.declaration_info:
-                print("警告：没有找到报关信息，创建默认报关信息")
                 try:
                     # 创建默认报关信息
                     self.declaration_info = [{
@@ -601,13 +529,11 @@ class ExcelProcessor:
                         "生产企业名称": "",
                         "电商企业dxpId": ""
                     }]
-                    print("默认报关信息创建成功")
                 except Exception as e:
                     print(f"创建默认报关信息时出错: {str(e)}")
             
             # 如果没有订单数据，创建一个默认订单用于测试
             if not self.order_data:
-                print("警告：没有找到订单数据，创建默认订单用于测试")
                 try:
                     self.order_data = [{
                         "订单编号": "测试订单001",
@@ -619,43 +545,53 @@ class ExcelProcessor:
                         "店铺名称": "Top Unique Hair",
                         "Consignee Country": "United States"
                     }]
-                    print("默认测试订单创建成功")
                 except Exception as e:
                     print(f"创建默认测试订单时出错: {str(e)}")
             
-            total_orders = len(self.order_data)
-            print(f"开始处理 {total_orders} 个订单...")
+            # 确定数据来源：优先使用匹配后的物流数据，否则使用订单数据
+            data_source = []
+            use_logistics_data = False
             
-            # 遍历订单数据，生成报关单数据
-            for index, order_row in enumerate(self.order_data):
+            if hasattr(self, 'logistics_data') and self.logistics_data:
+                # 使用匹配后的物流数据
+                data_source = self.logistics_data
+                use_logistics_data = True
+            else:
+                # 没有物流数据，使用订单数据
+                data_source = self.order_data
+            
+            total_orders = len(data_source)
+            
+            # 遍历数据来源，生成报关单数据
+            for index, data_row in enumerate(data_source):
                 try:
-                    print(f"\n处理订单 {index+1}/{total_orders}:")
-                    
-                    # 检查订单行是否为字典类型
-                    if not isinstance(order_row, dict):
-                        print(f"错误：订单行数据格式不正确，跳过处理")
+                    # 检查数据行是否为字典类型
+                    if not isinstance(data_row, dict):
                         error_orders += 1
                         continue
                     
+                    # 如果使用物流数据，检查是否已匹配到订单
+                    if use_logistics_data:
+                        if not data_row.get("is_matched", False):
+                            error_orders += 1
+                            continue
+                    
                     # 获取订单编号，支持多种字段名
                     try:
-                        order_no = order_row.get("订单号", "") or \
-                                  order_row.get("order code", "") or \
-                                  order_row.get("订单号/Order Code", "") or \
-                                  order_row.get("订单编号", "") or \
-                                  order_row.get("Order Code", "") or \
+                        order_no = data_row.get("订单号", "") or \
+                                  data_row.get("order code", "") or \
+                                  data_row.get("订单号/Order Code", "") or \
+                                  data_row.get("订单编号", "") or \
+                                  data_row.get("Order Code", "") or \
+                                  data_row.get("平台订单号", "") or \
                                   f"默认订单号_{index+1}"
-                        print(f"订单编号: {order_no}")
                     except Exception as e:
-                        print(f"获取订单编号时出错: {str(e)}")
                         order_no = f"错误订单号_{index+1}"
                     
                     # 获取店铺名称
                     try:
-                        shop_name = order_row.get("店铺名称", "默认店铺")
-                        print(f"订单店铺名称: {shop_name}")
+                        shop_name = data_row.get("店铺名称", "默认店铺")
                     except Exception as e:
-                        print(f"获取店铺名称时出错: {str(e)}")
                         shop_name = "默认店铺"
                     
                     # 根据店铺名称查找对应的公司名称
@@ -665,9 +601,7 @@ class ExcelProcessor:
                             if isinstance(shop_company, dict) and shop_company.get("shop_name") == shop_name:
                                 company_name = shop_company.get("company_name", "默认企业名称")
                                 break
-                        print(f"匹配到的公司名称: {company_name}")
                     except Exception as e:
-                        print(f"查找对应公司名称时出错: {str(e)}")
                         company_name = "默认企业名称"
                     
                     # 根据公司名称查找对应的报关信息 - 重点修改：按照README.md要求
@@ -677,17 +611,14 @@ class ExcelProcessor:
                         for declaration in self.declaration_info:
                             if isinstance(declaration, dict) and declaration.get("电商企业名称", "") == company_name:
                                 company_declaration_info = declaration
-                                print(f"成功匹配到公司 {company_name} 的报关信息")
                                 break
                         
                         # 如果没有找到匹配的报关信息，使用第一条作为默认值
                         if not company_declaration_info and self.declaration_info:
-                            print(f"警告：未找到公司 {company_name} 对应的报关信息，使用第一条报关信息作为默认值")
                             company_declaration_info = self.declaration_info[0]
                         
                         # 如果仍然没有报关信息，创建一个默认的
                         if not company_declaration_info:
-                            print("严重警告：没有可用的报关信息，创建最小化默认报关信息")
                             company_declaration_info = {
                                 "提单号": "",
                                 "商品品名": "默认商品",
@@ -710,7 +641,6 @@ class ExcelProcessor:
                                 "电商企业dxpId": ""
                             }
                     except Exception as e:
-                        print(f"查找对应报关信息时出错: {str(e)}")
                         # 创建最小化的默认报关信息以保证程序继续运行
                         company_declaration_info = {
                             "提单号": "",
@@ -736,111 +666,209 @@ class ExcelProcessor:
                     
                     # 获取目的国信息和国家代码 - 增强版：严格基于订单号对应的收件人国家
                     try:
-                        print(f"处理订单号 {order_no} 的国家匹配...")
-                        
                         # 核心匹配：严格获取订单号对应的收件人国家 - 这是唯一的主要匹配依据
                         # 优先获取Consignee Country字段，增加更多可能的字段名，提高匹配覆盖率
-                        consignee_country = order_row.get("Consignee Country", "") or \
-                                          order_row.get("收件人国家", "") or \
-                                          order_row.get("Recipient Country", "") or \
-                                          order_row.get("Consignee Country Name", "") or \
-                                          order_row.get("收件人国家名称", "") or \
-                                          order_row.get("Recipient Country Name", "") or \
-                                          order_row.get("Country of Consignee", "") or \
-                                          order_row.get("Consignee Country Code", "") or \
-                                          order_row.get("收件人所在国家", "") or \
+                        consignee_country = data_row.get("Consignee Country", "") or \
+                                          data_row.get("收件人国家", "") or \
+                                          data_row.get("Recipient Country", "") or \
+                                          data_row.get("Country", "") or \
+                                          data_row.get("国家", "") or \
+                                          data_row.get("收件人国家/Consignee Country", "") or \
+                                          data_row.get("收件人国家名称", "") or \
+                                          data_row.get("Recipient Country Name", "") or \
+                                          data_row.get("Country of Consignee", "") or \
+                                          data_row.get("Consignee Country Code", "") or \
+                                          data_row.get("收件人所在国家", "") or \
                                           "United States"  # 默认值作为最后的兜底
                         
-                        print(f"订单号 {order_no} 的收件人国家: '{consignee_country}'")
-                        
                         # 获取辅助信息（仅在主匹配失败时使用）
-                        destination_country = order_row.get("目的国", "") or \
-                                             order_row.get("Destination Country", "") or \
-                                             order_row.get("Country", "") or \
-                                             order_row.get("国家", "") or ""
+                        destination_country = data_row.get("目的国", "") or \
+                                             data_row.get("Destination Country", "") or \
+                                             data_row.get("Country", "") or \
+                                             data_row.get("国家", "") or ""
                         
-                        country_code_field = order_row.get("国家代码", "") or \
-                                           order_row.get("Country Code", "") or ""
+                        country_code_field = data_row.get("国家代码", "") or \
+                                           data_row.get("Country Code", "") or ""
                         
-                        # 严格匹配逻辑：只使用收件人国家去匹配国家代码数据中的收件人国家字段
+                        # 增强：添加国家代码映射表，支持更多国家
+                        country_code_map = {
+                            "United States": "502",
+                            "USA": "502",
+                            "US": "502",
+                            "United Kingdom": "303",
+                            "UK": "303",
+                            "GB": "303",
+                            "UNITED KINGDOM": "303",
+                            "Germany": "304",
+                            "GERMANY": "304",
+                            "DE": "304",
+                            "Canada": "305",
+                            "CANADA": "305",
+                            "CA": "305",
+                            "Australia": "306",
+                            "AUSTRALIA": "306",
+                            "AU": "306",
+                            "France": "307",
+                            "FRANCE": "307",
+                            "FR": "307",
+                            "Italy": "308",
+                            "ITALY": "308",
+                            "IT": "308",
+                            "Spain": "309",
+                            "SPAIN": "309",
+                            "ES": "309",
+                            "Japan": "310",
+                            "JAPAN": "310",
+                            "JP": "310",
+                            "South Korea": "311",
+                            "KOREA, REPUBLIC OF": "311",
+                            "KR": "311",
+                            "Singapore": "312",
+                            "SINGAPORE": "312",
+                            "SG": "312",
+                            "Malaysia": "313",
+                            "MALAYSIA": "313",
+                            "MY": "313",
+                            "India": "314",
+                            "INDIA": "314",
+                            "IN": "314",
+                            "Brazil": "315",
+                            "BRAZIL": "315",
+                            "BR": "315",
+                            "Russia": "316",
+                            "RUSSIAN FEDERATION": "316",
+                            "RU": "316",
+                            "South Africa": "317",
+                            "SOUTH AFRICA": "317",
+                            "ZA": "317"
+                        }
+                        
+                        # 初始化country_info变量，确保在所有情况下都有定义
                         country_info = None
-                        matched_by = None  # 记录匹配方式
                         
-                        # 1. 精确匹配：优先使用订单号对应的收件人国家精确匹配国家代码中的收件人国家字段
-                        print(f"使用订单号 {order_no} 对应的收件人国家 '{consignee_country}' 进行精确匹配")
-                        for country in self.country_codes:
-                            if isinstance(country, dict):
-                                # 核心匹配：直接比较收件人国家字段
-                                cc_in_data = country.get("consignee_country", "").strip()
-                                if cc_in_data and cc_in_data == consignee_country:
-                                    country_info = country
-                                    matched_by = "精确匹配收件人国家"
-                                    print(f"✓ 订单号 {order_no} 精确匹配成功: {country.get('country_name')} (收件人国家: {cc_in_data})")
-                                    break
-                        
-                        # 2. 模糊匹配：如果精确匹配失败，尝试模糊匹配收件人国家
-                        if not country_info and consignee_country:
-                            print(f"尝试模糊匹配收件人国家 '{consignee_country}'")
-                            for country in self.country_codes:
-                                if isinstance(country, dict):
-                                    cc_in_data = country.get("consignee_country", "").lower().strip()
-                                    if cc_in_data and cc_in_data in consignee_country.lower():
-                                        country_info = country
-                                        matched_by = "模糊匹配收件人国家"
-                                        print(f"✓ 订单号 {order_no} 模糊匹配成功: {country.get('country_name')} (收件人国家: {country.get('consignee_country')})")
-                                        break
-                        
-                        # 3. 反向模糊匹配：检查收件人国家是否包含在国家代码的收件人国家中
-                        if not country_info and consignee_country:
-                            print(f"尝试反向模糊匹配收件人国家 '{consignee_country}'")
-                            for country in self.country_codes:
-                                if isinstance(country, dict):
-                                    cc_in_data = country.get("consignee_country", "").lower().strip()
-                                    if cc_in_data and consignee_country.lower() in cc_in_data:
-                                        country_info = country
-                                        matched_by = "反向模糊匹配收件人国家"
-                                        print(f"✓ 订单号 {order_no} 反向模糊匹配成功: {country.get('country_name')} (收件人国家: {country.get('consignee_country')})")
-                                        break
-                        
-                        # 严格按照用户要求：仅根据收件人国家匹配，不使用其他备选方案
-                        # 如果主匹配失败，将使用默认值并记录详细日志
-                        
-                        # 从匹配到的国家信息中获取3字码
-                        country_code = "USA"  # 初始化国家3字码为默认值USA
+                        # 1. 首先尝试使用国家代码映射表直接获取3字码
+                        country_code = country_code_map.get(consignee_country, None)
                         is_country_valid = True  # 标记国家是否有效
                         
-                        if country_info:
-                            # 直接从匹配到的国家信息中获取3字码
-                            three_letter_code = country_info.get("three_letter_code")
-                            if three_letter_code:
-                                country_code = three_letter_code
-                                print(f"✓ 订单号 {order_no} 通过{matched_by}获取到3字码: {country_code}")
-                            else:
-                                print(f"警告：订单号 {order_no} 匹配到国家信息但未找到3字码，使用默认值USA")
-                        else:
-                            # 未匹配到国家信息时的详细日志
-                            print(f"警告：订单号 {order_no} 未找到匹配的国家信息")
-                            print(f"  - 收件人国家(主要匹配依据): '{consignee_country}'")
-                            print(f"  - 订单数据: {str(order_row)[:100]}..." if len(str(order_row)) > 100 else f"  - 订单数据: {str(order_row)}")
-                            print(f"  - 使用默认国家3字码: {country_code}")
-                            is_country_valid = False  # 国家无效，标记为False
+                        # 新增：记录匹配到的国家名称，用于后续查找申报金额规则
+                        matched_country_name = "美国"  # 默认值
                         
-                        # 最终确认：报关单使用的国家3字码
-                        print(f"订单号 {order_no} - 最终使用的国家3字码: {country_code}")
+                        if country_code:
+                            # 根据国家代码反向查找国家名称
+                            for name, code in country_code_map.items():
+                                if code == country_code:
+                                    # 使用中文国家名称，因为申报金额规则中的国家名称是中文
+                                    if name in ["United States", "USA", "US"]:
+                                        matched_country_name = "美国"
+                                    elif name in ["United Kingdom", "UK", "GB", "UNITED KINGDOM"]:
+                                        matched_country_name = "英国"
+                                    elif name in ["Germany", "GERMANY", "DE"]:
+                                        matched_country_name = "德国"
+                                    elif name in ["Canada", "CANADA", "CA"]:
+                                        matched_country_name = "加拿大"
+                                    elif name in ["Australia", "AUSTRALIA", "AU"]:
+                                        matched_country_name = "澳大利亚"
+                                    elif name in ["France", "FRANCE", "FR"]:
+                                        matched_country_name = "法国"
+                                    elif name in ["Italy", "ITALY", "IT"]:
+                                        matched_country_name = "意大利"
+                                    elif name in ["Spain", "SPAIN", "ES"]:
+                                        matched_country_name = "西班牙"
+                                    elif name in ["Japan", "JAPAN", "JP"]:
+                                        matched_country_name = "日本"
+                                    elif name in ["South Korea", "KOREA, REPUBLIC OF", "KR"]:
+                                        matched_country_name = "韩国"
+                                    elif name in ["Singapore", "SINGAPORE", "SG"]:
+                                        matched_country_name = "新加坡"
+                                    elif name in ["Malaysia", "MALAYSIA", "MY"]:
+                                        matched_country_name = "马来西亚"
+                                    elif name in ["India", "INDIA", "IN"]:
+                                        matched_country_name = "印度"
+                                    elif name in ["Brazil", "BRAZIL", "BR"]:
+                                        matched_country_name = "巴西"
+                                    elif name in ["Russia", "RUSSIAN FEDERATION", "RU"]:
+                                        matched_country_name = "俄罗斯"
+                                    elif name in ["South Africa", "SOUTH AFRICA", "ZA"]:
+                                        matched_country_name = "南非"
+                                    break
+                        else:
+                            # 2. 尝试使用目的国进行映射
+                            country_code = country_code_map.get(destination_country, None)
+                            if country_code:
+                                # 根据国家代码反向查找国家名称
+                                for name, code in country_code_map.items():
+                                    if code == country_code:
+                                        if name in ["United States", "USA", "US"]:
+                                            matched_country_name = "美国"
+                                        elif name in ["United Kingdom", "UK", "GB", "UNITED KINGDOM"]:
+                                            matched_country_name = "英国"
+                                        elif name in ["Germany", "GERMANY", "DE"]:
+                                            matched_country_name = "德国"
+                                        break
+                            else:
+                                # 3. 尝试使用国家代码字段进行映射
+                                country_code = country_code_map.get(country_code_field, None)
+                                if country_code:
+                                    # 根据国家代码反向查找国家名称
+                                    for name, code in country_code_map.items():
+                                        if code == country_code:
+                                            if name in ["United States", "USA", "US"]:
+                                                matched_country_name = "美国"
+                                            elif name in ["United Kingdom", "UK", "GB", "UNITED KINGDOM"]:
+                                                matched_country_name = "英国"
+                                            elif name in ["Germany", "GERMANY", "DE"]:
+                                                matched_country_name = "德国"
+                                            break
+                                else:
+                                    # 4. 尝试模糊匹配国家名称
+                                    matched = False
+                                    for country_name, code in country_code_map.items():
+                                        if country_name.lower() in consignee_country.lower() or consignee_country.lower() in country_name.lower():
+                                            country_code = code
+                                            matched = True
+                                            # 设置匹配到的国家名称
+                                            if country_name in ["United States", "USA", "US"]:
+                                                matched_country_name = "美国"
+                                            elif country_name in ["United Kingdom", "UK", "GB", "UNITED KINGDOM"]:
+                                                matched_country_name = "英国"
+                                            elif country_name in ["Germany", "GERMANY", "DE"]:
+                                                matched_country_name = "德国"
+                                            break
+                                    
+                                    if not matched:
+                                        # 5. 最后尝试匹配国家代码数据中的收件人国家字段
+                                        for country in self.country_codes:
+                                            if isinstance(country, dict):
+                                                cc_in_data = country.get("consignee_country", "").strip()
+                                                if cc_in_data and (cc_in_data == consignee_country or \
+                                                                 cc_in_data.lower() in consignee_country.lower() or \
+                                                                 consignee_country.lower() in cc_in_data.lower()):
+                                                    country_info = country
+                                                    three_letter_code = country_info.get("three_letter_code")
+                                                    if three_letter_code:
+                                                        country_code = three_letter_code
+                                                    # 使用国家数据中的国家名称
+                                                    if country_info:
+                                                        matched_country_name = country_info.get("country_name", "美国")
+                                                    break
+                                        
+                                        if not country_info:
+                                            # 所有匹配都失败，使用默认值
+                                            is_country_valid = False
+                                            matched_country_name = "美国"
                     except Exception as e:
                         # 异常处理：确保即使出错也能继续处理
-                        print(f"处理订单号 {order_no} 的国家信息时出错: {str(e)}")
-                        import traceback
-                        print(f"错误详情: {traceback.format_exc()}")
                         country_code = "USA"  # 使用默认值继续
-                        print(f"订单号 {order_no} 发生错误，使用默认国家3字码: {country_code}")
+                        matched_country_name = "美国"  # 设置默认国家名称，确保后续处理正常
                     
                     # 计算申报单价
                     try:
                         # 根据国家名称查找对应的申报金额规则
                         declaration_ratio = 0.5  # 默认申报比例
                         max_declaration_amount = 800  # 默认最高申报金额
-                        country_name_for_declaration = country_info.get("country_name", "美国") if country_info else "美国"
+                        
+                        # 使用新的matched_country_name变量，确保无论国家匹配方式如何，都能正确查找申报金额规则
+                        country_name_for_declaration = matched_country_name
                         
                         for rule in self.declaration_amount_rules:
                             if isinstance(rule, dict) and rule.get("country_name") == country_name_for_declaration:
@@ -848,42 +876,77 @@ class ExcelProcessor:
                                 max_declaration_amount = rule.get("max_declaration_amount", 800)
                                 break
                         
-                        # 获取订单金额，支持多种字段名
-                        order_amount = float(order_row.get("销售金额/Amount", 0) or \
-                                         order_row.get("总销售金额", 0) or \
-                                         order_row.get("AmountPaid", 0) or \
-                                         order_row.get("Amount", 0) or 0)
+                        # 获取订单金额，支持多种字段名，严格优先使用"总销售金额/AmountPaid"
+                        # 尝试从所有可能的字段名中获取订单金额，提高匹配成功率
+                        order_amount = 0.0
                         
-                        # 计算申报单价：使用订单总销售金额乘以申报比例
-                        declared_price = order_amount * declaration_ratio
+                        # 尝试所有可能的字段名，按优先级顺序
+                        possible_fields = [
+                            "总销售金额/AmountPaid",
+                            "销售金额/Amount",
+                            "总销售金额",
+                            "AmountPaid",
+                            "订单金额",
+                            "销售金额",
+                            "总销售金额/AmountPaid  ",
+                            "Total Amount",
+                            "Order Amount"
+                        ]
+                        
+                        for field in possible_fields:
+                            if field in data_row:
+                                # 尝试获取字段值，处理可能的空值情况
+                                field_value = data_row[field]
+                                if field_value is not None and field_value != "":
+                                    try:
+                                        order_amount = float(field_value)
+                                        break
+                                    except (ValueError, TypeError):
+                                        continue
+                        
+                        # 获取包裹内单个SKC的商品数量
+                        sku_quantity = company_declaration_info.get("包裹内单个SKC的商品数量", 1)
+                        
+                        # 确保sku_quantity是正数，避免除以零
+                        if sku_quantity <= 0:
+                            sku_quantity = 1
+                        
+                        # 计算单个商品的实际销售价格：订单总金额 / 商品数量
+                        actual_unit_price = order_amount / sku_quantity
+                        
+                        # 计算申报单价：单个商品实际销售价格 * 申报比例
+                        declared_price = actual_unit_price * declaration_ratio
+                        
+                        # 计算申报总价：申报单价 * 商品数量
+                        declared_total_price = declared_price * sku_quantity
                         
                         # 条件判断1：如果计算后的申报单价 < 15，则使用15
                         if declared_price <= 0 or declared_price < 15.0:
                             declared_price = 15.0
-                            print(f"订单金额{order_amount}，申报比例{declaration_ratio}，计算后申报单价{order_amount * declaration_ratio}小于15或为零/负数，申报单价设置为15.0")
                         
                         # 条件判断2：如果计算后的申报单价 > 国家对应的最高申报金额，则使用最高申报金额
                         if declared_price > max_declaration_amount:
                             declared_price = max_declaration_amount
-                            print(f"订单金额{order_amount}，申报比例{declaration_ratio}，计算后申报单价{order_amount * declaration_ratio}超过{country_name_for_declaration}的最高申报金额{max_declaration_amount}，申报单价设置为{max_declaration_amount}")
                         
-                        print(f"订单金额: {order_amount}, 国家: {country_name_for_declaration}, 申报比例: {declaration_ratio}, 最高申报金额: {max_declaration_amount}, 申报单价: {declared_price}")
+                        # 重新计算申报总价（如果申报单价被调整）
+                        declared_total_price = declared_price * sku_quantity
                     except Exception as e:
-                        print(f"计算申报单价时出错: {str(e)}")
-                        declared_price = 15.0  # 使用最小金额作为默认值继续
+                        # 计算失败，跳过该订单
+                        error_orders += 1
+                        # 继续处理下一个订单
+                        continue
                     
                     # 获取物流跟踪号 - 增强版本：优先从物流信息中匹配
                     logistics_tracking_no = order_no  # 默认使用订单号
                     try:
-                        # 首先从订单数据中获取物流跟踪号
-                        order_tracking_no = order_row.get("物流跟踪号", "") or \
-                                           order_row.get("Tracking Number", "") or \
-                                           order_row.get("包裹号（运单号）", "")
+                        # 首先从数据行中获取物流跟踪号
+                        order_tracking_no = data_row.get("物流跟踪号", "") or \
+                                           data_row.get("Tracking Number", "") or \
+                                           data_row.get("包裹号（运单号）", "")
                         
-                        # 如果订单中有物流跟踪号，先使用它
+                        # 如果数据行中有物流跟踪号，先使用它
                         if order_tracking_no:
                             logistics_tracking_no = order_tracking_no
-                            print(f"从订单数据获取物流跟踪号: {logistics_tracking_no}")
                         
                         # 尝试从已匹配的物流信息中获取更准确的物流跟踪号
                         if hasattr(self, 'logistics_data') and self.logistics_data:
@@ -903,29 +966,20 @@ class ExcelProcessor:
                                                               logistics_row.get("包裹号", "")
                                     
                                     if logistics_info_tracking_no:
-                                        # 如果物流信息中的跟踪号与订单中的不同，优先使用物流信息中的
-                                        if logistics_info_tracking_no != logistics_tracking_no:
-                                            print(f"从物流信息获取更准确的跟踪号: {logistics_info_tracking_no} (替换订单中的: {logistics_tracking_no})")
                                         logistics_tracking_no = logistics_info_tracking_no
                                         break
                         
                         # 预处理跟踪号：去掉可能的前缀
                         if logistics_tracking_no.startswith("TRACK-"):
                             logistics_tracking_no = logistics_tracking_no[6:]
-                            print(f"移除TRACK-前缀后跟踪号: {logistics_tracking_no}")
-                        
-                        print(f"最终确定的物流跟踪号: {logistics_tracking_no}")
                     except Exception as e:
-                        print(f"获取/匹配物流跟踪号时出错: {str(e)}")
                         # 出错时使用订单号作为跟踪号
                         logistics_tracking_no = order_no
-                        print(f"使用订单号作为跟踪号: {logistics_tracking_no}")
                     
                     # 生成报关单数据 - 严格按照README.md中的字段匹配规则
                     try:
                         # 确保company_declaration_info是字典类型
                         if not isinstance(company_declaration_info, dict):
-                            print("错误：报关信息不是字典类型，使用默认值")
                             company_declaration_info = {}
                         
                         # 确保所有字段都从匹配的报关信息中获取，而不是使用硬编码固定值
@@ -966,7 +1020,6 @@ class ExcelProcessor:
                         required_fields = ["商品品名", "HS CODE", "申报单位", "电商企业名称"]
                         for field in required_fields:
                             if not declaration_item.get(field):
-                                print(f"警告: 必填字段 {field} 值为空，使用默认值")
                                 # 为关键字段设置最小化默认值，以保证数据有效性
                                 if field == "商品品名":
                                     declaration_item[field] = "默认商品"
@@ -986,43 +1039,24 @@ class ExcelProcessor:
                         # 添加到结果列表
                         declaration_data.append(declaration_item)
                         processed_orders += 1
-                        print(f"成功添加报关单数据，当前累计: {len(declaration_data)} 条")
                     except Exception as e:
-                        print(f"生成报关单数据项时出错: {str(e)}")
                         error_orders += 1
                         continue
                 
                 except Exception as e:
                     # 单个订单处理失败，记录错误并继续处理下一个订单
-                    print(f"处理单个订单时发生未预期错误: {str(e)}")
-                    import traceback
-                    traceback.print_exc()
                     error_orders += 1
                     continue
             
-            # 打印处理统计
-            print(f"\n===== 报关单数据生成完成 =====")
-            print(f"总订单数: {total_orders}")
-            print(f"成功处理: {processed_orders}")
-            print(f"处理失败: {error_orders}")
-            print(f"生成报关单数据总数: {len(declaration_data)}")
+            # 保存生成的报关单数据到实例变量
+            self.customs_data = declaration_data
             
             return declaration_data
             
         except Exception as e:
             # 捕获整个生成过程中的异常
-            print(f"\n严重错误：生成报关单数据时发生系统性错误: {str(e)}")
-            import traceback
-            print("错误堆栈信息:")
-            traceback.print_exc()
-            
             # 即使发生系统性错误，也返回已生成的数据
-            print(f"返回已生成的 {len(declaration_data)} 条报关单数据")
             return declaration_data
-        
-        finally:
-            # 确保无论如何都会执行的清理工作
-            print("\n===== 报关单数据生成流程结束 =====")
     
     def get_order_data(self):
         """获取订单数据
@@ -1063,6 +1097,105 @@ class ExcelProcessor:
             raise
     
 
+    
+    def get_customs_data(self):
+        """获取报关单数据
+        
+        Returns:
+            list: 报关单数据列表
+        """
+        return self.customs_data
+    
+    def export_customs_data(self, customs_data, file_path):
+        """导出报关单数据到Excel文件
+        
+        Args:
+            customs_data: 报关单数据列表
+            file_path: 导出文件路径
+        """
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font
+            
+            # 创建工作簿
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "报关单数据"
+            
+            if customs_data:
+                # 获取表头
+                headers = list(customs_data[0].keys())
+                
+                # 写入表头
+                ws.append(headers)
+                
+                # 设置表头样式
+                for cell in ws[1]:
+                    cell.font = Font(bold=True)
+                
+                # 写入数据
+                for data in customs_data:
+                    row = [data.get(header, "") for header in headers]
+                    ws.append(row)
+            
+            # 保存文件
+            wb.save(file_path)
+            print(f"报关单数据导出成功: {file_path}")
+        except Exception as e:
+            print(f"导出报关单数据失败: {e}")
+            raise
+    
+    def export_customs_data_by_company(self, customs_data, export_dir):
+        """按公司导出报关单数据，每个公司一个Excel文件
+        
+        Args:
+            customs_data: 报关单数据列表
+            export_dir: 导出目录路径
+        """
+        try:
+            import os
+            from openpyxl import Workbook
+            from openpyxl.styles import Font
+            
+            # 按公司分组数据
+            company_data = {}
+            for data in customs_data:
+                company_name = data.get("电商企业名称", "未知公司")
+                if company_name not in company_data:
+                    company_data[company_name] = []
+                company_data[company_name].append(data)
+            
+            # 为每个公司创建Excel文件
+            for company_name, data_list in company_data.items():
+                # 创建工作簿
+                wb = Workbook()
+                ws = wb.active
+                ws.title = f"{company_name}报关单数据"
+                
+                if data_list:
+                    # 获取表头
+                    headers = list(data_list[0].keys())
+                    
+                    # 写入表头
+                    ws.append(headers)
+                    
+                    # 设置表头样式
+                    for cell in ws[1]:
+                        cell.font = Font(bold=True)
+                    
+                    # 写入数据
+                    for data in data_list:
+                        row = [data.get(header, "") for header in headers]
+                        ws.append(row)
+                
+                # 保存文件
+                file_name = f"{company_name}_报关单数据.xlsx"
+                file_path = os.path.join(export_dir, file_name)
+                wb.save(file_path)
+                print(f"公司 {company_name} 报关单数据导出成功: {file_path}")
+        except Exception as e:
+            print(f"按公司导出报关单数据失败: {e}")
+            raise
     
     def add_country_code(self, consignee_country, three_letter_code):
         """添加国家代码
@@ -1198,7 +1331,7 @@ class ExcelProcessor:
         try:
             # 查找并删除
             for i, code in enumerate(self.country_codes):
-                if code["consignee_country"] == consignee_country:
+                if code.get("consignee_country") == consignee_country:
                     del self.country_codes[i]
                     print(f"国家代码删除成功: {consignee_country}")
                     # 保存到文件
