@@ -982,16 +982,28 @@ class ExcelProcessor:
                         if not isinstance(company_declaration_info, dict):
                             company_declaration_info = {}
                         
+                        # 检查订单对应的国家是否是美国
+                        is_usa = False
+                        if country_code == "502" or matched_country_name == "美国":
+                            is_usa = True
+                        
+                        # 如果是美国，订单编号使用仓库单号/Warehouse order Code + "A"
+                        final_order_no = order_no
+                        if is_usa:
+                            warehouse_order_code = data_row.get("仓库单号", "") or data_row.get("Warehouse order Code", "") or data_row.get("仓库单号/Warehouse order Code", "")
+                            if warehouse_order_code:
+                                final_order_no = f"{warehouse_order_code}A"
+                        
                         # 确保所有字段都从匹配的报关信息中获取，而不是使用硬编码固定值
                         declaration_item = {
                             # 报关单各字段匹配：订单号所属店铺的公司的报关信息
                             "提单号": company_declaration_info.get("提单号", ""),
-                            "订单编号": order_no,  # 订单编号直接使用原始订单数据
+                            "订单编号": final_order_no,  # 订单编号直接使用原始订单数据或仓库单号+A
                             "大箱号": company_declaration_info.get("大箱号", ""),  # 允许报关信息中设置大箱号
                             "快件单号": company_declaration_info.get("快件单号", ""),  # 允许报关信息中设置快件单号
                             "包裹号（运单号）": logistics_tracking_no,  # 报关单的包裹号对应物流信息的物流跟踪号
                             "目的国": country_code,  # 报关单字段的目的国对应国家代码的3字码
-                            "SKC": order_no,  # 同订单编号
+                            "SKC": final_order_no,  # 同订单编号
                             "敏感品类别": company_declaration_info.get("敏感品类别", ""),  # 允许报关信息中设置敏感品类别
                             "商品品名": company_declaration_info.get("商品品名", ""),
                             "HS CODE": company_declaration_info.get("HS CODE", ""),
